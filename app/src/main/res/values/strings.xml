@@ -24,4 +24,7 @@
     <string name="tasks_no_completed_tasks_yet">No completed tasks yet</string>
     <string name="tasks_no_tasks_to_mark_as_completed">No tasks to mark as completed</string>
     <string name="tasks_no_tasks_to_mark_as_pending">No tasks to mark as pending</string>
+    <string name="tasks_error_delete">delete</string>
+    <string name="tasks_not_valid_concept">not valid</string>
+    <string name="tasks_undo_deleting">Undo</string>
 </resources>

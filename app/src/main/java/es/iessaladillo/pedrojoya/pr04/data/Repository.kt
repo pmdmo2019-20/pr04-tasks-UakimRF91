@@ -40,4 +40,6 @@ interface Repository {
     // en la lista recibida
     fun markTasksAsPending(taskIdList: List<Long>)
 
+    fun setCompletedAt(taskId: Long, completedAt: String)
+
 }
