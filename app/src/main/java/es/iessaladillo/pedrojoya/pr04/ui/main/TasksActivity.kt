@@ -90,7 +90,7 @@ class TasksActivity : AppCompatActivity() {
 
     private fun observeActivityTitle() {
         viewModel.activityTitle.observe(this) {
-            this.title = it
+            title = it
         }
     }
 
@@ -102,9 +102,7 @@ class TasksActivity : AppCompatActivity() {
 
     private fun observeOnStartActivity() {
         viewModel.onStartActivity.observeEvent(this) {
-            if (lstTasks.isNotEmpty()) {
-                startActivity(intent)
-            }
+            startActivity(it)
         }
     }
 
@@ -116,7 +114,7 @@ class TasksActivity : AppCompatActivity() {
 
     private fun observeOnShowTaskDeleted() {
         viewModel.onShowTaskDeleted.observeEvent(this) {
-            val concept = it.getConcept()
+            val concept = it.concept
             Snackbar.make( lstTasks, getString(R.string.tasks_task_deleted, concept), Snackbar.LENGTH_LONG)
                 .setAction(getString(R.string.tasks_undo_deleting)) { viewModel.addTask(concept) }.show()
         }
@@ -170,8 +168,8 @@ class TasksActivity : AppCompatActivity() {
 
     private fun setTaskChecked(position: Int) {
         val task = listAdapter.currentList[position]
-        viewModel.updateTaskCompletedState(task, !task.isCompleted())
-        Toast.makeText(this, String.format("No sé por que no se reflejan los cambios. En teoría la lista del LiveData del ViewModel se ha refrescado al hacer sortedByDescending. El texto actual de la tarea es: %n%s%nEl estado de completitud de la tarea es: %s%nAl depurar he visto que ListAdapter no conserva los datos de la antigua lista (mList), sino que adopta los datos de la nueva lista y, a la hora de comparar, las dos listas tienen mismos datos (pese a ser distintas listas).%nAdemás ocurre que, al cambiar de filtro, los datos sí se reflejan correctamente así que las tareas están correctamente en la lista pese a no estar pintadas. No he conseguido encontrar en dónde estoy fallando.", task.getText(), task.isCompleted()), Toast.LENGTH_LONG).show()
+        viewModel.updateTaskCompletedState(task, !task.completed)
+        //Toast.makeText(this, String.format("No sé por que no se reflejan los cambios. En teoría la lista del LiveData del ViewModel se ha refrescado al hacer sortedByDescending. El texto actual de la tarea es: %n%s%nEl estado de completitud de la tarea es: %s%nAl depurar he visto que ListAdapter no conserva los datos de la antigua lista (mList), sino que adopta los datos de la nueva lista y, a la hora de comparar, las dos listas tienen mismos datos (pese a ser distintas listas).%nAdemás ocurre que, al cambiar de filtro, los datos sí se reflejan correctamente así que las tareas están correctamente en la lista pese a no estar pintadas. No he conseguido encontrar en dónde estoy fallando.", task.getText(), task.isCompleted()), Toast.LENGTH_LONG).show()
     }
 
     private fun showTasks(tasks: List<Task>) {

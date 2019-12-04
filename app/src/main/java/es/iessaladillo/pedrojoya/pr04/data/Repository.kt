@@ -1,5 +1,6 @@
 package es.iessaladillo.pedrojoya.pr04.data
 
+import android.app.Application
 import es.iessaladillo.pedrojoya.pr04.data.entity.Task
 
 // Interfaz que contiene los métodos con los que se interactúa con la fuente de datos
@@ -17,7 +18,7 @@ interface Repository {
     // createdAt será la fecha y hora actual.
     fun addTask(concept: String)
     // Agrega la tarea recibida a la fuente de datos
-    fun insertTask(task: Task)
+    fun insertTask(concept: String, application: Application)
 
     // Borra de la fuente de datos la tarea cuyo id corresponde con
     // el recibido.
@@ -28,10 +29,10 @@ interface Repository {
 
     // Marca como completada en la fuente de datos la tarea cuyo id
     // corresponde con el recibido. completedAt pasa a ser la fecha y hora actual.
-    fun markTaskAsCompleted(taskId: Long)
+    fun markTaskAsCompleted(taskId: Long, application: Application)
     // Marca como completadas en la fuente de datos todas las tareas
     // cuyos id estén contenidos en la lista recibida
-    fun markTasksAsCompleted(taskIdList: List<Long>)
+    fun markTasksAsCompleted(taskIdList: List<Long>, application: Application)
 
     // Marca como pendiente la tarea cuyo id corresponde con
     // el recibido. completedAt pasa a ser cadena vacía.

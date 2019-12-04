@@ -9,13 +9,11 @@ import es.iessaladillo.pedrojoya.pr04.R
 import es.iessaladillo.pedrojoya.pr04.base.Event
 import es.iessaladillo.pedrojoya.pr04.data.Repository
 import es.iessaladillo.pedrojoya.pr04.data.entity.Task
-import java.text.SimpleDateFormat
-import java.util.*
 
 class TasksActivityViewModel(private val repository: Repository,
                              private val application: Application) : ViewModel() {
 
-    private val sdf = SimpleDateFormat("dd/MM/yyyy, hh:mm:ss", Locale.getDefault())
+
 
     // Estado de la interfaz
 
@@ -58,11 +56,12 @@ class TasksActivityViewModel(private val repository: Repository,
         get() = _onShowTaskDeleted
 
     // ACTION METHODS
-
+    
     // Hace que se muestre en el RecyclerView todas las tareas.
     fun filterAll() {
         _currentFilter.value = TasksActivityFilter.ALL
         _currentFilterMenuItemId.value = R.id.mnuFilterAll
+        _activityTitle.value = application.getString(R.string.tasks_title_all)
         queryTasks(_currentFilter.value!!)
 
     }
@@ -71,6 +70,7 @@ class TasksActivityViewModel(private val repository: Repository,
     fun filterCompleted() {
         _currentFilter.value = TasksActivityFilter.COMPLETED
         _currentFilterMenuItemId.value = R.id.mnuFilterCompleted
+        _activityTitle.value = application.getString(R.string.tasks_title_completed)
         queryTasks(_currentFilter.value!!)
     }
 
@@ -78,6 +78,7 @@ class TasksActivityViewModel(private val repository: Repository,
     fun filterPending() {
         _currentFilter.value = TasksActivityFilter.PENDING
         _currentFilterMenuItemId.value = R.id.mnuFilterPending
+        _activityTitle.value = application.getString(R.string.tasks_title_pending)
         queryTasks(_currentFilter.value!!)
     }
 
@@ -87,7 +88,7 @@ class TasksActivityViewModel(private val repository: Repository,
     // las completadas.
     fun addTask(concept: String) {
         if (isValidConcept(concept)) {
-            insertTask(Task(concept, application.getString(R.string.tasks_item_createdAt, sdf.format(Date())), false, ""))
+            insertTask(concept)
         } else {
             _onShowMessage.value = Event(application.getString(R.string.tasks_not_valid_concept))
         }
@@ -95,14 +96,14 @@ class TasksActivityViewModel(private val repository: Repository,
     }
 
     // Agrega la tarea
-    private fun insertTask(task: Task) {
-        repository.insertTask(task)
+    private fun insertTask(concept: String) {
+        repository.insertTask(concept, application)
         queryTasks(_currentFilter.value!!)
     }
 
     // Borra la tarea
     fun deleteTask(task: Task) {
-        repository.deleteTask(task.getId())
+        repository.deleteTask(task.id)
         _onShowTaskDeleted.value = Event(task)
         queryTasks(_currentFilter.value!!)
     }
@@ -121,7 +122,7 @@ class TasksActivityViewModel(private val repository: Repository,
     // informativo en un SnackBar de que no hay tareas que borrar.
     fun deleteTasks() {
         if (_tasks.value?.isNotEmpty() == true) {
-            repository.deleteTasks(_tasks.value!!.map { task -> task.getId() })
+            repository.deleteTasks(_tasks.value!!.map { task -> task.id })
             queryTasks(_currentFilter.value!!)
         } else {
             _onShowMessage.value = Event(application.getString(R.string.tasks_no_tasks_to_delete))
@@ -134,7 +135,7 @@ class TasksActivityViewModel(private val repository: Repository,
     // informativo en un SnackBar de que no hay tareas que marcar como completadas.
     fun markTasksAsCompleted() {
         if (_tasks.value?.isNotEmpty() == true) {
-            repository.markTasksAsCompleted(_tasks.value!!.map {task -> task.getId()})
+            repository.markTasksAsCompleted(_tasks.value!!.map {task -> task.id}, application)
             queryTasks(_currentFilter.value!!)
         } else {
             _onShowMessage.value = Event(application.getString(R.string.tasks_no_tasks_to_mark_as_completed))
@@ -147,7 +148,7 @@ class TasksActivityViewModel(private val repository: Repository,
     // informativo en un SnackBar de que no hay tareas que marcar como pendientes.
     fun markTasksAsPending() {
         if (_tasks.value?.isNotEmpty() == true) {
-            repository.markTasksAsPending(_tasks.value!!.map {task -> task.getId()})
+            repository.markTasksAsPending(_tasks.value!!.map {task -> task.id})
             queryTasks(_currentFilter.value!!)
         } else {
             _onShowMessage.value = Event(application.getString(R.string.tasks_no_tasks_to_mark_as_pending))
@@ -160,21 +161,22 @@ class TasksActivityViewModel(private val repository: Repository,
     // que no hay tareas que compartir.
     fun shareTasks() {
         if (tasks.value?.isNotEmpty() == true) {
-            var textTasks = ""
+            var textIntent = ""
             tasks.value!!.forEach {
-                    if (it.isCompleted()) {
-                        textTasks += application.getString(R.string.tasks_mnuFilterCompleted)
+                    if (it.completed) {
+                        textIntent += application.getString(R.string.tasks_mnuFilterCompleted)
                     } else {
-                        textTasks += application.getString(R.string.tasks_mnuFilterPending)
+                        textIntent += application.getString(R.string.tasks_mnuFilterPending)
                     }
-                    textTasks+=String.format(": %s%n", it.getConcept())
+                    textIntent+=String.format(": %s%n", it.concept)
             }
             val intent = Intent(Intent.ACTION_SEND).apply {
                 action = Intent.ACTION_SEND
-                putExtra(Intent.EXTRA_TEXT, textTasks)
+                putExtra(Intent.EXTRA_TEXT, textIntent)
                 type = "text/plain"
             }
             _onStartActivity.value = Event(intent)
+            //application.startActivity(intent)
         } else {
             _onShowMessage.value = Event(application.getString(R.string.tasks_no_tasks_to_share))
         }
@@ -187,10 +189,10 @@ class TasksActivityViewModel(private val repository: Repository,
     // en caso contrario es marcada como pendiente.
     fun updateTaskCompletedState(task: Task, isCompleted: Boolean) {
         if (isCompleted) {
-            repository.markTaskAsCompleted(task.getId())
-            repository.setCompletedAt(task.getId(), application.getString(R.string.tasks_item_completedAt, sdf.format(Date())))
+            repository.markTaskAsCompleted(task.id, application)
+            //repository.setCompletedAt(task.getId(), application.getString(R.string.tasks_item_completedAt, sdf.format(Date())))
         } else {
-            repository.markTaskAsPending(task.getId())
+            repository.markTaskAsPending(task.id)
         }
         queryTasks(_currentFilter.value!!)
     }
@@ -200,9 +202,9 @@ class TasksActivityViewModel(private val repository: Repository,
     // Pide las tareas al repositorio, atendiendo al filtro recibido
     private fun queryTasks(filter: TasksActivityFilter) {
         when (filter) {
-            TasksActivityFilter.ALL -> _tasks.value = repository.queryAllTasks().sortedByDescending { task -> task.getCreatedAt() }
-            TasksActivityFilter.PENDING -> _tasks.value = repository.queryPendingTasks().sortedByDescending { task -> task.getCreatedAt() }
-            TasksActivityFilter.COMPLETED -> _tasks.value = repository.queryCompletedTasks().sortedByDescending { task -> task.getCreatedAt() }
+            TasksActivityFilter.ALL -> _tasks.value = repository.queryAllTasks()
+            TasksActivityFilter.PENDING -> _tasks.value = repository.queryPendingTasks()
+            TasksActivityFilter.COMPLETED -> _tasks.value = repository.queryCompletedTasks()
         }
     }
 
